@@ -3,7 +3,6 @@ from collections import deque, defaultdict
 
 n = int(input())
 commands = [list(map(int, input().split())) for _ in range(n)]
-sys.stdin = open("output.txt", "r")
 
 
 class Node:
@@ -20,11 +19,10 @@ class Node:
         self.color = color
         self.max_depth = max_depth
 
-        self.p_node = None
         self.depth = 1
+        self.p_node = None
         self.children = []
 
-        self.last_update = 0
         self.color_set = {self.color}
 
     @property
@@ -39,21 +37,22 @@ def do100(c: list, d_nodes: dict[int, Node]):
     if node.p_id == -1:
         d_nodes[node.m_id] = node
         return
+    
+    p_node = d_nodes[node.p_id]
+    depth_dist = 1
+    while p_node.max_depth > depth_dist:
+        if p_node.p_id == -1:
+            break
 
-    def check_can_make(n: Node, need_depth) -> bool:
-        if n.p_id == -1 and n.max_depth >= need_depth:
-            return True
-        elif n.max_depth < need_depth:
-            return False
-        return check_can_make(d_nodes[n.p_id], need_depth + 1)
-
-    if check_can_make(d_nodes[node.p_id], 2):
+        depth_dist += 1
+        p_node = d_nodes[p_node.p_id]
+    
+    if p_node.p_id == -1:
         d_nodes[node.m_id] = node
-        d_nodes[node.p_id].children.append(node)
-
         node.p_node = d_nodes[node.p_id]
         node.depth = d_nodes[node.p_id].depth + 1
-
+        d_nodes[node.p_id].children.append(node)
+    
 
 def do200(c: list, d_nodes: dict[int, Node]):
     _, m_id, color = c
@@ -82,38 +81,14 @@ def do400(d_nodes: dict[int, Node]) -> int:
     return sum(n.value for n in d_nodes.values())
 
 
-def print_nodeinfo(n: Node):
-    print(
-        f"Node: {n.m_id}, "
-        f"Parent: {n.p_id}, "
-        f"Depth: {n.depth}, "
-        f"Color: {n.color}, "
-        f"LastUpdate: {n.last_update}, "
-        f"Value: {n.value}, "
-        f"ColorSet: {n.color_set}, "
-    )
-
-def print_info(d_nodes: dict[int, Node]):
-    print(f"\n# Current Node Info. ({len(d_nodes)})")
-    for n in d_nodes.values():
-        print_nodeinfo(n)
-    print()
-
-
-d_nodes: dict[int, Node] = {}
-for idx, c in enumerate(commands):
+d_nodes = {}
+for c in commands:
     if c[0] == 100:
         do100(c, d_nodes)
     elif c[0] == 200:
         do200(c, d_nodes)
     elif c[0] == 300:
-        msg = str(d_nodes[c[1]].color)
-        print(msg)
-        ans = input()
-        assert msg == ans, f"Command 300, msg: {msg}, answer: {ans}"
+        print(d_nodes[c[1]].color)
     elif c[0] == 400:
         total_value = do400(d_nodes)
-        msg = str(total_value)
-        print(msg)
-        ans = input()
-        assert msg == ans, f"Command 400, msg: {msg}, answer: {ans}"
+        print(total_value)
