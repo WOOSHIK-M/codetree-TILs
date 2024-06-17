@@ -101,7 +101,7 @@ def find_escape(forest, robot_i, x, y):
                 continue
 
             if (
-                (forest[x][y] == 2 and forest[nx][ny] == 1)
+                (forest[x][y] == 2 and forest[nx][ny] != 0)
                 or robot_i[x][y] == robot_i[nx][ny]
             ):
                 if (nx, ny) not in visited:
