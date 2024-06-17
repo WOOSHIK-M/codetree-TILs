@@ -74,7 +74,6 @@ def c100(query):
     dijkstra()
 
 
-
 def c200(query):
     tour_id, revenue, dest = query[1:]
     profit = revenue - D[dest]
@@ -89,15 +88,16 @@ def c300(query):
 
 
 def c400():
-    # print(package_q)
-    if not package_q:
-        print(-1)
-    else:
+    while package_q:
+        p = package_q[0]
+        if p.profit < 0:
+            break
+
         p = heapq.heappop(package_q)
-        if not isCancel[p.tour_id] and p.profit >= 0:
+        if not isCancel[p.tour_id]:
             print(p.tour_id)
-        else:
-            print(-1)
+            return
+    print(-1)
 
 
 def c500(query):
@@ -109,6 +109,7 @@ def c500(query):
     temp_packages = []
     while package_q:
         temp_packages.append(heapq.heappop(package_q))
+
     for p in temp_packages:
         profit = p.revenue - D[p.dest]
         heapq.heappush(package_q, Package(p.tour_id, p.revenue, p.dest, profit))
