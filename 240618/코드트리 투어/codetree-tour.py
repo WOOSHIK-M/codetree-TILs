@@ -22,6 +22,8 @@ class CodeTreeLand:
         self.adj_mat = [[0] * self.n for _ in range(self.n)]
         for src, dsts in self.cities.items():
             for dst, weight in dsts:
+                if self.adj_mat[src][dst]:
+                    weight = min(weight, self.adj_mat[src][dst])
                 self.adj_mat[src][dst] = weight
                 self.adj_mat[dst][src] = weight
 
@@ -30,6 +32,7 @@ class CodeTreeLand:
 
     def update_benefits(self) -> None:
         """."""
+
         def do_dijkstra():
             """."""
             # do dijkstra
