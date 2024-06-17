@@ -9,8 +9,8 @@ D = []
 S = 0
 
 package_q = []
-isMade = [False] * 30000
-isCancel = [False] * 30000
+isMade = [False] * 30001
+isCancel = [False] * 30001
 
 
 class Package:
@@ -90,7 +90,7 @@ def c100(query):
     for i in range(N):
         A[i][i] = 0
     for i in range(M):
-        u, v, w = arr[i*3], arr[i*3+1], arr[i*3+2]
+        u, v, w = arr[i * 3], arr[i * 3 + 1], arr[i * 3 + 2]
         A[u][v] = min(A[u][v], w)
         A[v][u] = min(A[v][u], w)
     
@@ -99,9 +99,9 @@ def c100(query):
 
 def c200(query):
     tour_id, revenue, dest = query[1:]
+    isMade[tour_id] = True
     profit = revenue - D[dest]
     heapq.heappush(package_q, Package(tour_id, revenue, dest, profit))
-    isMade[tour_id] = True
 
 
 def c300(query):
@@ -139,8 +139,8 @@ def c500(query):
 
 
 def main():
-    
-    for _ in range(int(input())):
+    Q = int(input())
+    for _ in range(Q):
         query = list(map(int, input().split()))
         T = query[0]
         
