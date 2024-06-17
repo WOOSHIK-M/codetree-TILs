@@ -25,60 +25,72 @@ def reserve_area2(robot_i, x, y, value):
 def move(forest, col: int, d: int):
     x, y = 0, col  # center
     
-    # go down
-    while (
-        x < r
-        and not forest[x + 2][y]
-        and not forest[x + 1][y - 1]
-        and not forest[x + 1][y + 1]
-    ):
-        x += 1
 
-    # rotate left
-    while (
-        x < r
-        and 1 < y
-        and not forest[x][y - 2]
-        and not forest[x - 1][y - 1]
-        and not forest[x + 1][y - 1]
-        and not forest[x + 1][y - 2]
-        and not forest[x + 2][y - 1]
-    ):
-        x += 1
-        y -= 1
+    while True:
+        flag = False
 
-        # rotate counter clockwise
-        if d == 0:
-            d = 3
-        elif d == 1:
-            d = 0
-        elif d == 2:
-            d = 1
-        else:
-            d = 2
+        # go down
+        while (
+            x < r
+            and not forest[x + 2][y]
+            and not forest[x + 1][y - 1]
+            and not forest[x + 1][y + 1]
+        ):
+            flag = True
+            x += 1
 
-    # rotate right
-    while (
-        x < r
-        and y < c - 2
-        and not forest[x][y + 2]
-        and not forest[x - 1][y + 1]
-        and not forest[x + 1][y + 1]
-        and not forest[x + 1][y + 2]
-        and not forest[x + 2][y + 1]
-    ):
-        x += 1
-        y += 1
+        # rotate left
+        while (
+            x < r
+            and 1 < y
+            and not forest[x][y - 2]
+            and not forest[x - 1][y - 1]
+            and not forest[x + 1][y - 1]
+            and not forest[x + 1][y - 2]
+            and not forest[x + 2][y - 1]
+        ):
+            flag = True
 
-        # rotate clockwise
-        if d == 0:
-            d = 1
-        elif d == 1:
-            d = 2
-        elif d == 2:
-            d = 3
-        else:
-            d = 0
+            x += 1
+            y -= 1
+
+            # rotate counter clockwise
+            if d == 0:
+                d = 3
+            elif d == 1:
+                d = 0
+            elif d == 2:
+                d = 1
+            else:
+                d = 2
+
+        # rotate right
+        while (
+            x < r
+            and y < c - 2
+            and not forest[x][y + 2]
+            and not forest[x - 1][y + 1]
+            and not forest[x + 1][y + 1]
+            and not forest[x + 1][y + 2]
+            and not forest[x + 2][y + 1]
+        ):
+            flag = True
+
+            x += 1
+            y += 1
+
+            # rotate clockwise
+            if d == 0:
+                d = 1
+            elif d == 1:
+                d = 2
+            elif d == 2:
+                d = 3
+            else:
+                d = 0
+        
+        if not flag:
+            break
     return x, y, d
 
 
