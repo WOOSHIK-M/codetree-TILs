@@ -27,15 +27,6 @@ class CodeTreeLand:
 
         self.products = {}
 
-    def __str__(self) -> str:
-        """."""
-        return (
-            f"[LAND INFO]\n"
-            # f"CITIES: {self.cities}\n"
-            f"EDGES: {self.info}\n"
-            f"PRODUCTS: {self.products}\n"
-        )
-
 
 # 100 - 랜드 건설
 def c100(c) -> CodeTreeLand:
