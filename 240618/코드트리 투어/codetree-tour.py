@@ -26,6 +26,42 @@ class CodeTreeLand:
                 self.adj_mat[dst][src] = weight
 
         self.products = {}
+        self.update_benefits()
+
+    def update_benefits(self) -> None:
+        """."""
+        def do_dijkstra():
+            """."""
+            # do dijkstra
+            start = self.start
+            distances = {city: float("inf") for city in self.cities}
+            distances[start] = 0
+
+            q = []
+            heapq.heappush(q, (distances[start], start))
+            while q:
+                cur_dist, cur_dest = heapq.heappop(q)
+
+                if distances[cur_dest] < cur_dist:
+                    continue
+
+                for new_dest, new_dist in self.cities[cur_dest]:
+                    distance = cur_dist + new_dist
+                    if distance < distances[new_dest]:
+                        distances[new_dest] = distance
+                        heapq.heappush(q, (distance, new_dest))
+            return distances
+        
+        self.distances = do_dijkstra()
+
+    def __str__(self) -> str:
+        """."""
+        return (
+            f"[LAND INFO]\n"
+            f"CITIES: {self.cities}\n"
+            f"EDGES: {self.info}\n"
+            f"PRODUCTS: {self.products}\n"
+        )
 
 
 # 100 - 랜드 건설
@@ -54,34 +90,10 @@ def c300(c, land: CodeTreeLand):
 # 400 - 최적의 여행 상품 판매
 def c400(land: CodeTreeLand):
     """."""
-
-    def do_dijkstra(s: int):
-        """."""
-        # do dijkstra
-        start = land.start
-        distances = {city: float("inf") for city in land.cities}
-        distances[start] = 0
-
-        q = []
-        heapq.heappush(q, (distances[start], start))
-        while q:
-            cur_dist, cur_dest = heapq.heappop(q)
-
-            if distances[cur_dest] < cur_dist:
-                continue
-
-            for new_dest, new_dist in land.cities[cur_dest]:
-                distance = cur_dist + new_dist
-                if distance < distances[new_dest]:
-                    distances[new_dest] = distance
-                    heapq.heappush(q, (distance, new_dest))
-        return distances
-    
-    distances = do_dijkstra(s=0)
     benefits = {
-        tour_id: revenue - distances[dst]
+        tour_id: revenue - land.distances[dst]
         for tour_id, (revenue, dst) in land.products.items()
-        if revenue - distances[dst] >= 0
+        if revenue - land.distances[dst] >= 0
     }
     tour_id = -1
     if benefits:
@@ -95,11 +107,11 @@ def c400(land: CodeTreeLand):
 # 500 - 여행 상품의 출발지 변경
 def c500(c, land: CodeTreeLand):
     land.start = c[1]
+    land.update_benefits()
 
 
 land = c100(COMMANDS[0])
 for command in COMMANDS[1:]:
-    # print(command)
     if command[0] == 200:
         c200(command, land)
     elif command[0] == 300:
