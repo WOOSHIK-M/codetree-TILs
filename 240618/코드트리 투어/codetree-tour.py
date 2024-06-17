@@ -74,18 +74,20 @@ def c300(c, land: CodeTreeLand):
 # 400 - 최적의 여행 상품 판매
 def c400(land: CodeTreeLand):
     """."""
-    benefits = {
-        tour_id: revenue - land.distances[dst]
-        for tour_id, (revenue, dst) in land.products.items()
-        if dst in land.distances and revenue - land.distances[dst] >= 0
-    }
-    tour_id = -1
-    if benefits:
-        max_benefit = max(list(benefits.values()))
-        tour_ids = [tour_id for tour_id, benefit in benefits.items() if benefit == max_benefit]
-        tour_id = min(tour_ids)
-        land.products.pop(tour_id)
-    print(tour_id)
+    max_benefit = max_tour_id = -1
+    for tour_id, tour_info in land.products.items():
+        if tour_info[1] not in land.distances:
+            continue
+        benefit = tour_info[0] - land.distances[tour_info[1]]
+        if benefit >= 0 and max_benefit < benefit:
+            max_benefit = benefit
+            max_tour_id = tour_id
+        elif benefit >= 0 and max_benefit == benefit:
+            max_tour_id = min(max_tour_id, tour_id)
+
+    print(max_tour_id)
+    if max_benefit != -1:
+        land.products.pop(max_tour_id)
 
 
 # 500 - 여행 상품의 출발지 변경
