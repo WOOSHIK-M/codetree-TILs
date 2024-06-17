@@ -1,7 +1,3 @@
-import sys
-sys.stdin = open("input.txt", "r")
-
-
 from collections import deque, defaultdict
 
 
