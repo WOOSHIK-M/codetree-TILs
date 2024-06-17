@@ -77,7 +77,7 @@ def c400(land: CodeTreeLand):
     benefits = {
         tour_id: revenue - land.distances[dst]
         for tour_id, (revenue, dst) in land.products.items()
-        if revenue - land.distances[dst] >= 0
+        if dst in land.distances and revenue - land.distances[dst] >= 0
     }
     tour_id = -1
     if benefits:
