@@ -22,94 +22,66 @@ def reserve_area2(robot_i, x, y, value):
     return forest
 
 
-def move(forest, col: int, d: int):
-    x, y = 0, col  # center
-    
-
-    while True:
-        flag = False
-
-        # go down
-        while (
-            x < r
-            and not forest[x + 2][y]
-            and not forest[x + 1][y - 1]
-            and not forest[x + 1][y + 1]
-        ):
-            flag = True
-            x += 1
-
-        # rotate left
-        while (
-            x < r
-            and 1 < y
-            and not forest[x][y - 2]
-            and not forest[x - 1][y - 1]
-            and not forest[x + 1][y - 1]
-            and not forest[x + 1][y - 2]
-            and not forest[x + 2][y - 1]
-        ):
-            flag = True
-
-            x += 1
-            y -= 1
-
-            # rotate counter clockwise
-            if d == 0:
-                d = 3
-            elif d == 1:
-                d = 0
-            elif d == 2:
-                d = 1
-            else:
-                d = 2
-
-        # rotate right
-        while (
-            x < r
-            and y < c - 2
-            and not forest[x][y + 2]
-            and not forest[x - 1][y + 1]
-            and not forest[x + 1][y + 1]
-            and not forest[x + 1][y + 2]
-            and not forest[x + 2][y + 1]
-        ):
-            flag = True
-
-            x += 1
-            y += 1
-
-            # rotate clockwise
-            if d == 0:
-                d = 1
-            elif d == 1:
-                d = 2
-            elif d == 2:
-                d = 3
-            else:
-                d = 0
-        
-        if not flag:
-            break
+def move(forest, x: int, y: int, d: int):
+    flag = False
+    if (
+        x < r + 1
+        and not forest[x + 2][y]
+        and not forest[x + 1][y - 1]
+        and not forest[x + 1][y + 1]
+    ):
+        # print("Go Down")
+        flag = True
+        x += 1
+    elif (
+        x < r + 1
+        and 1 < y
+        and not forest[x][y - 2]
+        and not forest[x - 1][y - 1]
+        and not forest[x + 1][y - 1]
+        and not forest[x + 1][y - 2]
+        and not forest[x + 2][y - 1]
+    ):
+        # print("Go Left")
+        flag = True
+        x += 1
+        y -= 1
+        d = (d + 3) % 4
+    elif (
+        x < r + 1
+        and y < c - 2
+        and not forest[x][y + 2]
+        and not forest[x - 1][y + 1]
+        and not forest[x + 1][y + 1]
+        and not forest[x + 1][y + 2]
+        and not forest[x + 2][y + 1]
+    ):
+        # print("Go Right")
+        flag = True
+        x += 1
+        y += 1
+        d = (d + 1) % 4
+    if flag:
+        x, y, d = move(forest, x, y, d)
     return x, y, d
 
 
 def find_escape(forest, robot_i, x, y):
-    max_row, visited = x, []
+    max_row, visited = 0, []
     
     dx, dy = [1, -1, 0, 0], [0, 0, 1, -1]
     q = deque([(x, y)])
     while q:
         x, y = q.popleft()
 
-        max_row = max(max_row, x - 1)
-        if x == r + 1:
+        max_row = max(max_row, x - 2)
+        if x == r + 2:
             break
 
         for i in range(4):
             nx, ny = x + dx[i], y + dy[i]
 
-            if nx < 0 or nx > r + 1 or ny < 0 or ny > c - 1:
+            if nx < 0 or nx > r + 2 or ny < 0 or ny > c - 1:
                 continue
 
             if (
@@ -122,16 +94,16 @@ def find_escape(forest, robot_i, x, y):
     return max_row
 
 
-forest = [[0] * c for _ in range(r + 2)]
-robot_i = [[0] * c for _ in range(r + 2)]
+forest = [[0] * c for _ in range(r + 3)]
+robot_i = [[0] * c for _ in range(r + 3)]
 answer = 0
 for i, (col, d) in enumerate(info):
     col -= 1
 
-    x, y, d = move(forest, col, d)
-    if x < 3:
-        forest = [[0] * c for _ in range(r + 2)]
-        robot_i = [[0] * c for _ in range(r + 2)]
+    x, y, d = move(forest, 0, col, d)
+    if x < 4:
+        forest = [[0] * c for _ in range(r + 3)]
+        robot_i = [[0] * c for _ in range(r + 3)]
     else:
         reserve_area1(forest, x, y, d)
         reserve_area2(robot_i, x, y, i + 1)
