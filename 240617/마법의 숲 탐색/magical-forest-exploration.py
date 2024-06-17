@@ -117,12 +117,14 @@ for i, (col, d) in enumerate(info):
     col -= 1
 
     x, y, d = move(forest, col, d)
-    if x < 2:
+    if x < 3:
         forest = [[0] * c for _ in range(r + 2)]
+        robot_i = [[0] * c for _ in range(r + 2)]
     else:
         reserve_area1(forest, x, y, d)
         reserve_area2(robot_i, x, y, i + 1)
 
         max_row = find_escape(forest, robot_i, x, y)
         answer += max_row
+
 print(answer)
