@@ -9,17 +9,13 @@ COMMANDS = [list(map(int, input().split())) for _ in range(Q)]
 class CodeTreeLand:
     def __init__(self, n, m, info) -> None:
         """Initialize."""
-        self.n = n
-        self.m = m
-        self.info = info
-
         self.start = 0
 
         self.cities = defaultdict(list)
-        for i in self.info:
+        for i in info:
             self.cities[i[0]].append((i[1], i[2]))
             self.cities[i[1]].append((i[0], i[2]))
-        self.adj_mat = [[0] * self.n for _ in range(self.n)]
+        self.adj_mat = [[0] * n for _ in range(n)]
         for src, dsts in self.cities.items():
             for dst, weight in dsts:
                 if self.adj_mat[src][dst]:
@@ -32,39 +28,24 @@ class CodeTreeLand:
 
     def update_benefits(self) -> None:
         """."""
+        start = self.start
+        distances = {city: float("inf") for city in self.cities}
+        distances[start] = 0
 
-        def do_dijkstra():
-            """."""
-            # do dijkstra
-            start = self.start
-            distances = {city: float("inf") for city in self.cities}
-            distances[start] = 0
+        q = []
+        heapq.heappush(q, (distances[start], start))
+        while q:
+            cur_dist, cur_dest = heapq.heappop(q)
 
-            q = []
-            heapq.heappush(q, (distances[start], start))
-            while q:
-                cur_dist, cur_dest = heapq.heappop(q)
+            if distances[cur_dest] < cur_dist:
+                continue
 
-                if distances[cur_dest] < cur_dist:
-                    continue
-
-                for new_dest, new_dist in self.cities[cur_dest]:
-                    distance = cur_dist + new_dist
-                    if distance < distances[new_dest]:
-                        distances[new_dest] = distance
-                        heapq.heappush(q, (distance, new_dest))
-            return distances
-        
-        self.distances = do_dijkstra()
-
-    def __str__(self) -> str:
-        """."""
-        return (
-            f"[LAND INFO]\n"
-            f"CITIES: {self.cities}\n"
-            f"EDGES: {self.info}\n"
-            f"PRODUCTS: {self.products}\n"
-        )
+            for new_dest, new_dist in self.cities[cur_dest]:
+                distance = cur_dist + new_dist
+                if distance < distances[new_dest]:
+                    distances[new_dest] = distance
+                    heapq.heappush(q, (distance, new_dest))
+        self.distances = distances
 
 
 # 100 - 랜드 건설
