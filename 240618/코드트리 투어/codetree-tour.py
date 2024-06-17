@@ -1,108 +1,137 @@
-from collections import defaultdict
 import heapq
 
 
-Q = int(input())
-COMMANDS = [list(map(int, input().split())) for _ in range(Q)]
+N = 2000
+M = 10000
+
+A = []
+D = []
+S = 0
+
+package_q = []
+isMade = [False] * 30000
+isCancel = [False] * 30000
 
 
-class CodeTreeLand:
-    def __init__(self, n, m, info) -> None:
-        """Initialize."""
-        self.start = 0
+class Package:
+    def __init__(self, tour_id, revenue, dest, profit):
+        self.tour_id = tour_id
+        self.revenue = revenue
+        self.dest = dest
+        self.profit = profit
+    
+    def __lt__(self, other):
+        if self.profit == other.profit:
+            return self.tour_id < other.tour_id
+        return self.profit > other.profit
 
-        self.cities = defaultdict(list)
-        for i in info:
-            self.cities[i[0]].append((i[1], i[2]))
-            self.cities[i[1]].append((i[0], i[2]))
-        self.adj_mat = [[0] * n for _ in range(n)]
-        for src, dsts in self.cities.items():
-            for dst, weight in dsts:
-                if self.adj_mat[src][dst]:
-                    weight = min(weight, self.adj_mat[src][dst])
-                self.adj_mat[src][dst] = weight
-                self.adj_mat[dst][src] = weight
+    def __str__(self):
+        return (
+            f"[ID: {self.tour_id}] "
+            f"DESTINATION: {self.dest}, "
+            f"PROFIT: {self.profit}"
+        )
 
-        self.products = {}
-        self.update_benefits()
-
-    def update_benefits(self) -> None:
-        """."""
-        start = self.start
-        distances = {city: float("inf") for city in self.cities}
-        distances[start] = 0
-
-        q = []
-        heapq.heappush(q, (distances[start], start))
-        while q:
-            cur_dist, cur_dest = heapq.heappop(q)
-
-            if distances[cur_dest] < cur_dist:
-                continue
-
-            for new_dest, new_dist in self.cities[cur_dest]:
-                distance = cur_dist + new_dist
-                if distance < distances[new_dest]:
-                    distances[new_dest] = distance
-                    heapq.heappush(q, (distance, new_dest))
-        self.distances = distances
+    def __repr__(self) -> str:
+        return self.__str__()
 
 
-# 100 - 랜드 건설
-def c100(c) -> CodeTreeLand:
-    """."""
-    n, m = c[1:3]
-    info = c[3:]
-    info = list(zip(info[::3], info[1::3], info[2::3]))
-    return CodeTreeLand(n, m, info)
+def dijkstra():
+    global D, S
 
+    # do dijkstra
+    D = [float("inf")] * N
+    D[S] = 0
 
-# 200 - 여행 상품 생성
-def c200(c, land: CodeTreeLand):
-    """."""
-    tour_id, revenue, dest = c[1:]
-    land.products[tour_id] = (revenue, dest)
-
-
-# 300 - 여행 상품 취소
-def c300(c, land: CodeTreeLand):
-    """."""
-    if c[1] in land.products:
-        land.products.pop(c[1])
-
-
-# 400 - 최적의 여행 상품 판매
-def c400(land: CodeTreeLand):
-    """."""
-    max_benefit = max_tour_id = -1
-    for tour_id, tour_info in land.products.items():
-        if tour_info[1] not in land.distances:
+    pq = [(0, S)]
+    heapq.heapify(pq)
+    while pq: 
+        cur_dist, cur_dest = heapq.heappop(pq)
+        if D[cur_dest] < cur_dist:
             continue
-        benefit = tour_info[0] - land.distances[tour_info[1]]
-        if benefit >= 0 and max_benefit < benefit:
-            max_benefit = benefit
-            max_tour_id = tour_id
-        elif benefit >= 0 and max_benefit == benefit:
-            max_tour_id = min(max_tour_id, tour_id)
+    
+        for new_dest, new_dist in enumerate(A[cur_dest]):
+            if not new_dist:
+                continue
+            distance = cur_dist + new_dist
+            if distance < D[new_dest]:
+                D[new_dest] = distance
+                heapq.heappush(pq, (distance, new_dest))
+        
 
-    print(max_tour_id)
-    if max_benefit != -1:
-        land.products.pop(max_tour_id)
+def c100(query):
+    global A, N, M, S
+
+    N, M, arr = query[1], query[2], query[3:]
+    A = [[float("inf")] * N for _ in range(N)]
+    for i in range(N):
+        A[i][i] = 0
+    for i in range(M):
+        u, v, w = arr[i*3], arr[i*3+1], arr[i*3+2]
+        A[u][v] = min(A[u][v], w)
+        A[v][u] = min(A[v][u], w)
+    
+    dijkstra()
 
 
-# 500 - 여행 상품의 출발지 변경
-def c500(c, land: CodeTreeLand):
-    land.start = c[1]
-    land.update_benefits()
+
+def c200(query):
+    tour_id, revenue, dest = query[1:]
+    profit = revenue - D[dest]
+    heapq.heappush(package_q, Package(tour_id, revenue, dest, profit))
+    isMade[tour_id] = True
 
 
-land = c100(COMMANDS[0])
-for command in COMMANDS[1:]:
-    if command[0] == 200:
-        c200(command, land)
-    elif command[0] == 300:
-        c300(command, land)
-    elif command[0] == 400:
-        c400(land)
-    elif command[0] == 500:
-        c500(command, land)
+def c300(query):
+    tour_id = query[1]
+    if isMade[tour_id]:
+        isCancel[tour_id] = True
+
+
+def c400():
+    # print(package_q)
+    if not package_q:
+        print(-1)
+    else:
+        p = heapq.heappop(package_q)
+        if not isCancel[p.tour_id] and p.profit >= 0:
+            print(p.tour_id)
+        else:
+            print(-1)
+
+
+def c500(query):
+    global S
+
+    S = query[1]
+    dijkstra()
+
+    temp_packages = []
+    while package_q:
+        temp_packages.append(heapq.heappop(package_q))
+    for p in temp_packages:
+        profit = p.revenue - D[p.dest]
+        heapq.heappush(package_q, Package(p.tour_id, p.revenue, p.dest, profit))
+
+
+def main():
+    
+    for _ in range(int(input())):
+        query = list(map(int, input().split()))
+        T = query[0]
+        
+        # 쿼리의 종류에 따라 필요한 함수들을 호출하여 처리합니다
+        if T == 100:
+            c100(query)
+        elif T == 200:
+            c200(query)
+        elif T == 300:
+            c300(query)
+        elif T == 400:
+            c400()
+        else:
+            c500(query)
+
+
+if __name__ == "__main__":
+    main()
