@@ -53,6 +53,8 @@ def switch_parent(query):
     a, b = map(int, query[1:])
     ca, cb = chats[a], chats[b]
     pca, pcb = ca.parent, cb.parent
+    if pca.i == pcb.i:
+        return
 
     del pca.children[ca.i]
     pca.children.update({cb.i: cb})
@@ -77,6 +79,7 @@ def count_child_nodes(query):
 
 
 for query in queries:
+    # print(query)
     if query[0] == "100":
         create_chats(query)
     elif query[0] == "200":
@@ -87,3 +90,7 @@ for query in queries:
         switch_parent(query)
     elif query[0] == "500":
         count_child_nodes(query)
+
+    # for chat in chats.values():
+    #     print(chat)
+    # print()
