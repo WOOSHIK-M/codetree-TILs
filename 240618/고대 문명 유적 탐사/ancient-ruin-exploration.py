@@ -16,22 +16,20 @@ class PriorityCoord:
 
 class Solution:
 
-    def __init__(self, arr, i, j, reward, degree, hsum, vsum, coords):
+    def __init__(self, arr, i, j, reward, degree, coords):
         self.arr = arr
         self.i, self.j = i, j
         self.reward = reward
         self.degree = degree
-        self.hsum = hsum
-        self.vsum = vsum
 
         self.coords = coords
     
     def __lt__(self, other: "Solution"):
         if self.reward == other.reward:
             if self.degree == other.degree:
-                if self.vsum == other.vsum:
-                    return self.hsum > other.hsum
-                return self.vsum > other.vsum
+                if self.j == other.j:
+                    return self.i > other.i
+                return self.j > other.j
             return self.degree > other.degree
         return self.reward < other.reward
 
@@ -43,10 +41,10 @@ class TreasureMap:
         """Initialize."""
         self.K, self.M = map(int, input().split())
         self.arr = [list(map(int, input().split())) for _ in range(5)]
+        # print(self.arr)
         
         # re-fill values
         self.board = list(map(int, input().split()))
-        self.board_idx = 0
 
         # exploration
         self.dx, self.dy = [1, -1, 0, 0], [0, 0, 1, -1]
@@ -54,27 +52,34 @@ class TreasureMap:
     def run(self) -> None:
         """Run."""
         rewards = []
+        board_idx = 0
         for _ in range(self.K):
+            # print(self.arr)
+    
             opt_sol = self.explore()
             arr, coords, reward = opt_sol.arr, opt_sol.coords, opt_sol.reward
             if reward == 0:
                 break
 
-            board_idx, total_reward = self.board_idx, 0
-            # print(opt_sol.i, opt_sol.j, opt_sol.degree)
+            total_reward = 0
             while reward > 0:
                 total_reward += reward
 
                 p_coords = [PriorityCoord(x, y) for x, y in coords]
                 heapq.heapify(p_coords)
+
+                # print(self.board[board_idx:])
                 while p_coords:
                     coord = heapq.heappop(p_coords)
                     arr[coord.x][coord.y] = self.board[board_idx]
                     board_idx += 1
 
                 reward, coords = self._do_bfs(arr)
+
             self.arr = arr
             rewards.append(total_reward)
+            # print(arr, opt_sol.i, opt_sol.j, opt_sol.degree)
+            # print()
         print(" ".join(map(str, rewards)))
 
     def explore(self) -> None:
@@ -85,10 +90,10 @@ class TreasureMap:
                 for d in [0, 90, 180, 270]:
                     arr = self._rotate_by_degree(i, j, d)
                     tmp_r, coords = self._do_bfs(arr)
+                    solutions.append(Solution(arr, i, j, tmp_r, d, coords))
 
-                    hsum = sum(self.arr[i][j - 1: j + 2])
-                    vsum = sum(self.arr[i + tmp_i][j] for tmp_i in [-1, 0, 1])
-                    solutions.append(Solution(arr, i, j, tmp_r, d, hsum, vsum, coords))
+        # for s in solutions:
+        #     print(s.i, s.j, s.degree, s.reward, s.arr)
         return max(solutions)
 
     def _rotate_by_degree(self, i: int, j: int, degree: int):
