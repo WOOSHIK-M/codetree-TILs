@@ -1,99 +1,67 @@
-from collections import deque, defaultdict
-
-class Sushi:
-    def __init__(self, name):
-        self.name = name
-
-    def __str__(self):
-        return f"Name: {self.name}"
-
-    def __repr__(self):
-        return self.__str__()
-
-
-class Table:
-    def __init__(self, l):
-        self.l = l
-        self.sushi = deque([defaultdict(int) for _ in range(self.l)])
-        self.persons = {i: defaultdict(int) for i in range(self.l)}
-
-        self.t = 0
-
-    def add_sushi(self, query):
-        t, x, name = int(query[1]), int(query[2]), query[3]
-        while self.t < t:
-            self.do_a_timestep()
-
-        self.sushi[x][name] += 1
-        if name in self.persons[x]:
-            if self.eat_sushi_and_leave(x, name, self.persons[x][name]):
-                del self.persons[x][name]
-
-    def get_a_guest(self, query):
-        t, x, name, n = int(query[1]), int(query[2]), query[3], int(query[4])
-        self.persons[x][name] = n
-        while self.t < t:
-            self.do_a_timestep()
-
-    def eat_sushi_and_leave(self, x, name, n):
-        sushi_on_table = self.sushi[x][name]
-        if n > sushi_on_table:
-            self.persons[x][name] = n - sushi_on_table
-            del self.sushi[x][name]
-            return False
-        elif n == sushi_on_table:
-            del self.sushi[x][name]
-        else:
-            self.sushi[x][name] = sushi_on_table - n
-        return True
-
-    def take_a_photo(self, query):
-        while self.t < int(query[1]):
-            self.do_a_timestep()
-
-        n_person = sum(len(p) for p in self.persons.values())
-        n_sushi = sum(sum(s.values()) for s in self.sushi)
-        print(n_person, n_sushi)
-
-    def do_a_timestep(self):
-        self.sushi.appendleft(self.sushi.pop())
-
-        persons_to_leave = []
-        for x, persons in self.persons.items():
-            for name, n in persons.items():
-                if self.eat_sushi_and_leave(x, name, n):
-                    persons_to_leave.append((x, name))
-
-        # update guest info
-        for x, name in persons_to_leave:
-            del self.persons[x][name]
-
-        self.t += 1
-
-    def display_info(self):
-        table_info = [dict(s) if s else "*" for s in self.sushi]
-        person_info = [dict(p) if p else "*" for p in self.persons.values()]
-        print(
-            "< TABLE INFO >\n"
-            f"# of SUSHI: {sum(len(s) for s in self.sushi)}\n"
-            f"# of person: {sum(len(p) for p in self.persons.values())}\n"
-            f"TableInfo (SUSHI): {table_info}\n"
-            f"TableInfo (PERSON): {person_info}\n"
-            f"TimeStamp: {self.t}\n"
-        )
+from collections import defaultdict
 
 
 L, Q = map(int, input().split())
-table = Table(l=L)
+queries = [input().split() for _ in range(Q)]
 
-for t in range(Q):
-    query = input().split()
+d_name_sushi_in = defaultdict(list)
+d_name_sushi_out = defaultdict(list)
+d_name_person_in = {}
+d_name_person_out = defaultdict(int)
+take_photos = []
 
+for query in queries:
     if query[0] == "100":
-        table.add_sushi(query)
+        t, x, name = int(query[1]), int(query[2]), query[3]
+        d_name_sushi_in[name].append((t, x))
     elif query[0] == "200":
-        table.get_a_guest(query)
-    elif query[0] == "300":
-        table.take_a_photo(query)
+        t, x, name, n = int(query[1]), int(query[2]), query[3], int(query[4])
+        d_name_person_in[name] = (t, x, n)
+    else:
+        take_photos.append(int(query[1]))
 
-    # table.display_info()
+
+def compute_sushi_x_by_time(t, x, tg_t):
+    return (x + (tg_t - t)) % L
+
+def compute_eat_time():
+    for name in d_name_person_in:
+        entry_t, entry_x, _ = d_name_person_in[name]
+
+        for t, x in d_name_sushi_in[name]:
+            if entry_t >= t:
+                x = compute_sushi_x_by_time(t, x, entry_t)
+                last_t = entry_t
+            else:
+                x = x
+                last_t = t
+
+            if x > entry_x:
+                distance = L - (x - entry_x)
+            else:
+                distance = entry_x - x
+            d_name_sushi_out[name].append(last_t + distance)
+        d_name_person_out[name] = max(d_name_sushi_out[name])
+
+
+compute_eat_time()
+
+# print(dict(d_name_sushi_in))
+# print(dict(d_name_sushi_out))
+# print(dict(d_name_person_in))
+# print(dict(d_name_person_out))
+
+for t in take_photos:
+    # compute the number of persons
+    n_person = 0
+    for name in d_name_person_in:
+        if d_name_person_in[name][0] < t < d_name_person_out[name]:
+            n_person += 1
+    n_sushi = 0
+    for name in d_name_sushi_in:
+        tins = [t for t, _ in d_name_sushi_in[name]]
+        for tin, tout in zip(tins, d_name_sushi_out[name]):
+            if tin < t < tout:
+                n_sushi += 1
+
+    print(n_person, n_sushi)
